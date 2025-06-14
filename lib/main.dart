@@ -1,8 +1,11 @@
 import 'package:exp_tracker/screens/home_screen.dart';
 // import 'package:exp_tracker/screens/onboarding_screen.dart';
+import 'package:exp_tracker/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   runApp(const MyApp());
 }
 

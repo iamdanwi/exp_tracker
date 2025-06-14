@@ -5,6 +5,7 @@ import 'add_expenses.dart';
 import 'budget_settings_screen.dart';
 import 'package:intl/intl.dart';
 import 'recent_transactions_screen.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   static const double WARNING_THRESHOLD = 0.8;
   static const double DANGER_THRESHOLD = 0.9;
   static const double CRITICAL_THRESHOLD = 0.95;
+  static const double BUDGET_SPENT_80 = 0.8;
+  static const double BUDGET_SPENT_90 = 0.9;
+  static const double BUDGET_SPENT_95 = 0.95;
+  static const double BUDGET_SPENT_100 = 1.0;
 
   AnimationController? _headerController;
   AnimationController? _cardsController;
@@ -168,27 +173,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _checkBudgetAndNotify() {
-    if (_monthlyBudget == 0) {
-      return; // Don't show notifications if no budget set
+    if (_monthlyBudget == 0) return;
+
+    double percentageUsed = _getMonthExpenses() / _monthlyBudget;
+
+    if (percentageUsed >= BUDGET_SPENT_100) {
+      NotificationService().showBudgetAlert(
+        id: 4,
+        title: 'Budget Alert!',
+        body:
+            'You have exceeded your monthly budget! Time to review your expenses.',
+      );
+    } else if (percentageUsed >= BUDGET_SPENT_95) {
+      NotificationService().showBudgetAlert(
+        id: 3,
+        title: 'Critical Budget Warning',
+        body: 'You\'ve used 95% of your budget. Consider limiting expenses.',
+      );
+    } else if (percentageUsed >= BUDGET_SPENT_90) {
+      NotificationService().showBudgetAlert(
+        id: 2,
+        title: 'Budget Warning',
+        body: 'You\'ve reached 90% of your monthly budget. Time to be careful!',
+      );
+    } else if (percentageUsed >= BUDGET_SPENT_80) {
+      NotificationService().showBudgetAlert(
+        id: 1,
+        title: 'Budget Reminder',
+        body:
+            'You\'ve used 80% of your monthly budget. Keep an eye on spending!',
+      );
     }
 
-    double monthlyExpenses = _getMonthExpenses();
-    double percentageUsed = monthlyExpenses / _monthlyBudget;
-
-    if (percentageUsed >= CRITICAL_THRESHOLD) {
+    // Show in-app alert regardless of notification schedule
+    if (percentageUsed >= BUDGET_SPENT_80) {
       _showBudgetAlert(
-        'Critical! You have used 95% of your monthly budget!',
-        Colors.red,
-      );
-    } else if (percentageUsed >= DANGER_THRESHOLD) {
-      _showBudgetAlert(
-        'Warning! You have used 90% of your monthly budget!',
-        Colors.orange,
-      );
-    } else if (percentageUsed >= WARNING_THRESHOLD) {
-      _showBudgetAlert(
-        'Notice: You have used 80% of your monthly budget.',
-        Colors.amber,
+        'You\'ve used ${(percentageUsed * 100).toStringAsFixed(0)}% of your budget',
+        _getBudgetColor(),
       );
     }
   }
