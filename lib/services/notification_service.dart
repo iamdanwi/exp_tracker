@@ -1,7 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -12,8 +10,6 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    tz.initializeTimeZones(); // Initialize timezone data
-
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings initializationSettingsIOS =
@@ -39,37 +35,31 @@ class NotificationService {
   }) async {
     if (!await _shouldShowNotification()) return;
 
-    try {
-      // Show immediate notification instead of scheduling
-      final AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            'budget_alerts',
-            'Budget Alerts',
-            channelDescription: 'Notifications for budget thresholds',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          );
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'budget_alerts',
+          'Budget Alerts',
+          channelDescription: 'Notifications for budget thresholds',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
 
-      final DarwinNotificationDetails iOSDetails =
-          const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          );
+    final DarwinNotificationDetails iOSDetails =
+        const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        );
 
-      final NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-        iOS: iOSDetails,
-      );
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iOSDetails,
+    );
 
-      // Show notification immediately
-      await flutterLocalNotificationsPlugin.show(id, title, body, details);
-
-      await _saveLastNotificationTime();
-    } catch (e) {
-      print('Error showing notification: $e');
-    }
+    // Show immediate notification instead of scheduling
+    await flutterLocalNotificationsPlugin.show(id, title, body, details);
+    await _saveLastNotificationTime();
   }
 
   Future<bool> _shouldShowNotification() async {
