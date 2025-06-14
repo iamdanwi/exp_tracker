@@ -237,6 +237,107 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  void _showNotificationHistory() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.notifications, color: Colors.green[600]),
+            const SizedBox(width: 8),
+            const Text('Budget Alerts'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_monthlyBudget > 0) ...[
+              _buildAlertItem(
+                'Current Budget Usage',
+                '${(_getBudgetPercentage() * 100).toStringAsFixed(0)}% of budget used',
+                _getBudgetColor(),
+              ),
+              const Divider(),
+              _buildAlertItem(
+                'Monthly Spending',
+                '₹${_getMonthExpenses().toStringAsFixed(0)} / ₹${_monthlyBudget.toStringAsFixed(0)}',
+                Colors.blue[700]!,
+              ),
+            ] else
+              _buildAlertItem(
+                'No Budget Set',
+                'Set a budget in settings to get alerts',
+                Colors.grey,
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.settings, size: 18),
+            label: const Text('Budget Settings'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF58CC02),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BudgetSettingsScreen(),
+                ),
+              ).then((value) {
+                if (value == true) _loadBudget();
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlertItem(String title, String message, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.circle, color: color, size: 8),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  message,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _headerController!.dispose();
@@ -350,9 +451,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           child: IconButton(
                             icon: const Icon(Icons.notifications_outlined),
                             color: Colors.white,
-                            onPressed: () {
-                              // Handle notifications
-                            },
+                            onPressed: _showNotificationHistory,
                           ),
                         ),
                         const SizedBox(width: 12),
